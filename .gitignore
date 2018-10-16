@@ -1,0 +1,8 @@
+git_back/*
+xx/*
+model_save/*
+__pycache__/*
+.idea/*
+wing_openFoam/*
+*.log
+*.csv
