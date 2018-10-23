@@ -6,7 +6,7 @@ class Wing:
 
     def __init__(self, airfoil):
         self.airfoil = airfoil
-        self.n = airfoil.shape[0]
+        self.n = airfoil.shape[1]
         self.length = 1
 
     def clone(self):
@@ -29,10 +29,10 @@ class Node:
         self.index = index
         self.P = prob
         self.pred = None
-        self.value = 0
+        self.value = 0.00001 * np.random.randn()
         self.visit = 0
         self.W = 0
-        self.Q = 0
+        self.Q = 0.00001 * np.random.randn()
         self.children = []
 
     def add_child(self):
@@ -40,7 +40,7 @@ class Node:
             self.children.append(Node(parent=self, index=i, prob=p))
 
     def select_child(self):
-        return sorted(self.children, key=lambda c: c.P / (1 + c.visit))[-1]
+        return sorted(self.children, key=lambda c: c.P / (1 + c.visit) + c.Q)[-1]
 
     def update(self):
         self.visit += 1
@@ -93,6 +93,7 @@ def uct(root_wing, iteration, pred, v, x, se):
             node = node.parent
 
     pi = np.array(list(map(lambda c: c.visit, root_node.children)))
+    pi = pi / np.sum(pi)
     return pi, index_point(np.argmax(pi), root_wing.n)
 
 

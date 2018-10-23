@@ -1,6 +1,15 @@
 import numpy as np
 
 
+def cal_vertices(airf):
+    n = airf.shape[0]
+    x = np.argwhere(airf.T == 1).astype(np.float)
+    x[:, 1] -= x[0, 1]
+    x[:, 0] /= n - 1
+    x[:, 1] /= (n - 1) * 2
+    return x
+
+
 def array_sort(v):
     v = v[v[:, 0] > 0]
     down = v[v[:, 1] < 0.0001]
@@ -127,6 +136,9 @@ def write_boundary(file, m, b):
 
 def write_dict(a):
 
+    if a.shape[1] != 2:
+        a = cal_vertices(a)
+
     v = array_sort(a)
     m1 = v.shape[0]
     m2 = m1 * 2 + 4
@@ -147,6 +159,8 @@ def write_dict(a):
     top[:, 2] = 2
 
     vertices = np.concatenate((v, bottom, circle, top, [[1, 0, 2], [4, 0, 2]]), axis=0)
+
+    print(vertices)
 
     blocks = np.arange(points_num)
     blocks = np.insert(blocks, m1 * 2 + 2, [2, 3, 0, 1]).reshape(2, -1).T.reshape(-1, 2, 2)
@@ -188,5 +202,5 @@ if __name__ == '__main__':
     x = np.argwhere(airfoil_pre.T == 1).astype(np.float)
     x[:, 1] -= x[0, 1]
     x /= np.array([10, 30])
-
+    x = np.array([1, 0, 0.1, -0.1, 0, 0, 0.1, 0.1, 0.3, 0.1, 0.3, -0.1]).reshape(-1, 2)
     write_dict(x)

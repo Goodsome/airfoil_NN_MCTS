@@ -1,13 +1,22 @@
-import numpy as np
+from input_data import *
 
 
-def array_sort(v):
-    down = v[v[:, 1] < 0.0001]
-    down = down[np.argsort(down[:, 0])][::-1]
-    up = v[v[:, 1] > 0.0001]
-    up = up[np.argsort(up[:, 0])]
+def cal_vertices(p):
+    n = p.shape[0]
+    x = np.argwhere(p[::-1].T == 1).astype(np.float)
+    x[:, 1] -= x[0, 1]
+    x[:, 0] /= n - 1
+    x[:, 1] /= (n - 1) * 4
+    return x
 
-    return np.concatenate((down, up))
+
+def array_sort(v, power=1):
+    v[:, 0] = np.power(v[:, 0], power)
+    cut = v.reshape(-1, 2, 2)
+    up = cut[:, 0, :]
+    down = cut[:, 1, :]
+
+    return np.concatenate((down[::-1], up))
 
 
 def tran(v):
@@ -44,7 +53,7 @@ def write_blocks(file, m, b):
         if i == 0 or i == m - 1:
             file.write('    hex (%d %d %d %d %d %d %d %d) (40 1 80) simpleGrading (1 1 10)\n' % tup)
         else:
-            file.write('    hex (%d %d %d %d %d %d %d %d) (2 1 80) simpleGrading (1 1 10)\n' % tup)
+            file.write('    hex (%d %d %d %d %d %d %d %d) (1 1 80) simpleGrading (1 1 10)\n' % tup)
     file.write(');\n\n')
 
 
@@ -115,7 +124,10 @@ def write_boundary(file, m, b):
 
 def write_dict(a):
 
-    v = array_sort(a)
+    if a.shape[1] != 2:
+        a = cal_vertices(a)
+
+    v = array_sort(a, power=1)
     m1 = v.shape[0]
     m2 = m1 * 2 + 4
     m3 = m2 * 2
@@ -128,9 +140,11 @@ def write_dict(a):
     theta = np.linspace(0, np.pi, n)
     circle = np.insert(np.array([-np.sin(theta), -np.cos(theta)]).T * 2 + o, 1, 0, axis=1)
 
-    bottom = v[(v[:, 0] > o[0]) * (v[:, 2] < 0.0001)]
+    v1 = v[:m1 // 2]
+    v2 = v[-m1 // 2:]
+    bottom = v1[(v1[:, 0] > o[0])]
     bottom[:, 2] = -2
-    top = v[(v[:, 0] > o[0]) * (v[:, 2] > 0.0001)]
+    top = v2[(v2[:, 0] > o[0])]
     top[:, 2] = 2
 
     vertices = np.concatenate((v, bottom, circle, top, [[1, 0, 2], [4, 0, 2]]), axis=0)
@@ -157,25 +171,6 @@ def write_dict(a):
                 ');\n\n')
 
 
-airfoil_pre = np.array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                        0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0,
-                        0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0,
-                        0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0,
-                        0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0,
-                        1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-                        0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0,
-                        0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0,
-                        0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0,
-                        0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0,
-                        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]).reshape([11, 11])
-
-
 if __name__ == '__main__':
 
-    x = np.argwhere(airfoil_pre.T == 1).astype(np.float)
-    x[:, 1] -= x[0, 1]
-    x /= np.array([10, 20])
-
-    x = np.array([1, 0, 0.1, -0.1, 0, 0, 0.1, 0.1]).reshape(-1, 2)
-
-    write_dict(x)
+    write_dict(air1)

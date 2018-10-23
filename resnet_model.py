@@ -288,13 +288,33 @@ def model(inputs, filters, blocks, training, n):
 
     inputs = tf.reshape(inputs, [-1, n, n, 1])
     inputs = block_layer(inputs, filters, True, _bottleneck_block_v2, blocks, 1, training, 'pro', 'channels_last')
+    inputs = block_layer(inputs, 4, True, _bottleneck_block_v2, 1, 1, training, 'min', 'channels_last')
 
-    inputs = tf.reshape(inputs, [-1, n * n * filters * 4])
+    inputs = tf.reshape(inputs, [-1, n * n * 4 * 4])
     inputs = tf.layers.dense(inputs, units=1024, activation=tf.nn.relu)
     inputs = tf.layers.batch_normalization(inputs, training=training)
-    probability = tf.layers.dense(inputs, units=n * (n - 1) // 2, activation=tf.nn.softmax)
+    outputs = tf.layers.dense(inputs, units=n * (n - 1) // 2)
+    pro = tf.nn.softmax(outputs)
 
     value = tf.layers.dense(inputs, units=512, activation=tf.nn.relu)
-    value = tf.layers.dense(value, units=1, activation=tf.nn.sigmoid)
+    value = tf.layers.dense(value, units=1, activation=tf.nn.tanh)
 
-    return probability, value
+    return outputs, pro, value
+
+
+def pre_train(y_true, y):
+    loss = tf.losses.softmax_cross_entropy(y_true, y)
+    optimizer = tf.train.AdamOptimizer(learning_rate=0.0001)
+    train = optimizer.minimize(loss)
+
+    return train, loss
+
+
+def mcts_train(z, v, pi, p):
+    loss = tf.losses.mean_squared_error(z, v)  + tf.nn.softmax_cross_entropy_with_logits_v2(labels=pi, logits=p) # + tf.losses.get_regularization_loss()
+    optimizer = tf.train.AdamOptimizer(learning_rate=0.0001)
+    train = optimizer.minimize(loss)
+
+    return train, loss
+
+
