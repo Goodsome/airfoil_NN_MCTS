@@ -1,4 +1,4 @@
-from resnet_model import *
+from model_v2 import *
 from input_data import *
 
 num = 11

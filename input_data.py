@@ -1,4 +1,4 @@
-from mcts import point_index, index_point
+from mcts_v2 import point_index
 import numpy as np
 
 ERROR = 0.00001

@@ -1,4 +1,3 @@
-import os
 from blockMeshDict_v2 import *
 from scipy import interpolate
 from input_data import *
@@ -21,11 +20,7 @@ z_n = f_n(x_n)
 
 ver1 = np.concatenate((x_n, x_n[1:-1], z_n, -z_n[1:-1])).reshape(2, -1).T
 
-print(ver1)
-print(np.sort(ver1, axis=0))
-
-# arr = naca0012(21)
-#
-# write_dict(ver1)
+arr = naca0012(21)
+write_dict(ver1)
 # os.system('blockMesh -case "wing_openFoam"')
 # os.system('paraFoam -case "wing_openFoam"')
