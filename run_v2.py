@@ -3,13 +3,16 @@ from mcts_v2 import *
 from distance import *
 from blockMeshDict_v2 import *
 from input_data import *
+import matplotlib as mpl
+mpl.use('Agg')
+import matplotlib.pyplot as plt
 
 """
 run第二版：
 神经网络输出数组V，储存子节点v_i
 """
 
-n = 21
+n = 41
 num = n
 c_n2 = n * (n - 1) // 2
 
@@ -22,12 +25,12 @@ airfoil[n // 2, [0, n - 1]] = 1
 
 x = tf.placeholder(tf.float32)
 
-pre, pro, val = model(inputs=x, filters=32, blocks=8, n=num, training=False)
+pre, pro, val = model(inputs=x, filters=32, blocks=16, n=num, training=False)
 saver = tf.train.Saver()
 
 z = tf.placeholder(dtype=tf.float32, shape=[None, 1])
 pi_true = tf.placeholder(dtype=tf.float32, shape=[None, c_n2])
-x_index = tf.placeholder(dtype=tf.float32, shape=[None , c_n2])
+x_index = tf.placeholder(dtype=tf.float32, shape=[None, c_n2])
 ones = tf.ones([c_n2, 1], dtype=tf.float32)
 train, loss = mcts_train(z, val, pi_true, pre, x_index, ones)
 
@@ -40,28 +43,17 @@ if __name__ == '__main__':
     # saver.restore(sess, '/home/xie/tf_model/x')
 
     for _ in range(100):
+        print(_, 'iteration')
         wing = Wing(airfoil)
         for i in range(n - 2):
-            pi[i], ind = uct(wing, (n - i) * 20, pro, val, x, sess)
+            print(i, end='\r')
+            pi[i], ind = uct(wing, (n - i) * 10, pro, val, x, sess)
             air_input[i] = wing.airfoil
             val_i[i, ind] = 1
             wing.draw(index_point(ind, n))
 
-        print(wing.airfoil)
-        write_dict(wing.airfoil)
-
-        os.system('./wing_openFoam/Allclean')
-        blockMesh = os.system('blockMesh -case "wing_openFoam" > blockMesh.log')
-        if blockMesh != 0:
-            continue
-        print('blockMesh done!')
-        rhoSimpleFoam = os.system('rhoSimpleFoam -case "wing_openFoam" > rhoSimple.log')
-        if rhoSimpleFoam != 0:
-            continue
-        print('rhoSimpleFoam down')
-        os.system('paraFoam -touch -case "wing_openFoam"')
-        os.system('mv wing_openFoam/wing_openFoam.OpenFOAM wing_openFoam/wing_openFoam.foam')
-        os.system('pvpython wing_openFoam/sci.py')
+        ws = write_dict(wing.airfoil)
+        ws = np.row_stack((ws, ws[0]))
 
         func = target_pressure_fn()
         dis = distance(func)
@@ -69,8 +61,23 @@ if __name__ == '__main__':
         D = np.zeros(n - 2).reshape([-1, 1])
         D += dis
 
-        for i in range(500):
-            _, loss_value = sess.run((train, loss), {x: air_input, z: D, pi_true: pi, x_index: val_i})
+        name = 'iteration_%d_distance=%f' % (_, dis)
+        fig_path = 'pic/iteration_%d.png' % _
+        fig, ax = plt.subplots()
+        ax.plot(ws[:, 0], ws[:, 1])
+        plt.xlim(0, 1)
+        plt.ylim(-0.5, 0.5)
+        ax.set(title=name)
+        fig.savefig(fig_path)
+        plt.close()
+        print('save wing shape')
+
+        for i in range(1000):
+            train_, loss_value = sess.run((train, loss), {x: air_input, z: D, pi_true: pi, x_index: val_i})
+            if i % 100 == 0:
+                print(i, loss_value)
+
+        save_path = saver.save(sess, '/home/xie/tf_model/x')
 
     print(wing.airfoil)
 

@@ -15,7 +15,23 @@ def target_pressure_fn():
 
     return fn
 
+
 def distance(fn):
+
+    os.system('./wing_openFoam/Allclean')
+    blockMesh = os.system('blockMesh -case "wing_openFoam" > blockMesh.log')
+    if blockMesh != 0:
+        dis = 0
+        return dis
+    print('blockMesh done!')
+    rhoSimpleFoam = os.system('rhoSimpleFoam -case "wing_openFoam" > rhoSimple.log')
+    if rhoSimpleFoam != 0:
+        dis = 0
+        return dis
+    print('rhoSimpleFoam down')
+    os.system('paraFoam -touch -case "wing_openFoam"')
+    os.system('mv wing_openFoam/wing_openFoam.OpenFOAM wing_openFoam/wing_openFoam.foam')
+    os.system('pvpython wing_openFoam/sci.py')
 
     tmp = np.loadtxt('wing_openFoam/cand0.csv', dtype=np.str, delimiter=',')
     pressure = tmp[1:-1, 0].astype(np.float)
@@ -24,9 +40,10 @@ def distance(fn):
     p_new = fn(x_new)
 
     dis = np.exp(-np.linalg.norm(pressure - p_new) / 1e5 / np.sqrt(pressure.shape))
+    dis = np.power(dis, 1)
 
     return dis
 
 
 if __name__ == '__main__':
-    print(distance())
+    print(distance(target_pressure_fn()))

@@ -2,11 +2,12 @@ from input_data import *
 
 
 def cal_vertices(p):
+    """二维数组转化为坐标点"""
     n = p.shape[0]
     x = np.argwhere(p[::-1].T == 1).astype(np.float)
     x[:, 1] -= x[0, 1]
-    x[:, 0] /= n - 1
-    x[:, 1] /= (n - 1) * 4
+    x /= n - 1
+    x[:, 1] *= 0.12
     return x
 
 
@@ -127,7 +128,9 @@ def write_dict(a):
     if a.shape[1] != 2:
         a = cal_vertices(a)
 
+
     v = array_sort(a, power=1)
+    wing_shape = v.copy()
     m1 = v.shape[0]
     m2 = m1 * 2 + 4
     m3 = m2 * 2
@@ -169,6 +172,8 @@ def write_dict(a):
         f.write('mergePatchPairs\n'
                 '(\n'
                 ');\n\n')
+
+    return wing_shape
 
 
 if __name__ == '__main__':

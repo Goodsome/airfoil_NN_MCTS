@@ -43,15 +43,17 @@ def inputs_data(airfoil):
     return air_input, point_true
 
 
-def naca0012(n=101):
-    x = np.linspace(0, 1, n)
-    z = 0.1
-    points = np.zeros([(n - 1) * 2, 2])
-    points[:n, 0] = x[::-1]
-    points[n:, 0] = x[1:-1]
-    points[1:n - 1, 1] = -z
-    points[n:, 1] = z
+def naca0012(n=101, points=None):
+    if points is None:
+        x = np.linspace(0, 1, n)
+        z = 0.1
+        points = np.zeros([(n - 1) * 2, 2])
+        points[:n, 0] = x[::-1]
+        points[n:, 0] = x[1:-1]
+        points[1:n - 1, 1] = -z
+        points[n:, 1] = z
 
+    points[:, 1] /= 0.12
     points *= n - 1
     points[:, 1] += (n - 1) // 2
     points += ERROR

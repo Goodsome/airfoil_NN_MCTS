@@ -6,6 +6,7 @@ mcts第二版本
 
 """
 
+
 def index_point(index, n):
     assert index < n * (n - 1) / 2
     point = np.zeros(n)
@@ -108,28 +109,3 @@ def uct(root_wing, iteration, pred, v, x, se):
     pi = pi / np.sum(pi)
     return pi, np.argmax(pi)
 
-def test_uct(iteration, pred, value):
-    root_node = Node()
-
-    for i in range(iteration):
-        node = root_node
-
-        while node.children:
-            node = node.select_child()
-
-        if i < 5:
-            node.pred, node.value = pred, value
-            node.add_child()
-
-        while node:
-            node.update()
-            node = node.parent
-
-    pi = np.array(list(map(lambda c: c.visit, root_node.children)))
-    return pi, np.argmax(pi)
-
-if __name__ == '__main__':
-    pred = np.array([0.1, 0.1, 0.2, 0.3, 0.3])
-    value = np.array([0.3, 0.1, 0.3, 0.2, 0.3])
-    pai, index = test_uct(10, pred, value)
-    print(pai)
