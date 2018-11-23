@@ -40,14 +40,15 @@ if __name__ == '__main__':
     sess = tf.Session()
     sess.run(tf.global_variables_initializer())
 
-    # saver.restore(sess, '/home/xie/tf_model/x')
+    saver.restore(sess, '/home/xie/tf_model/x')
 
     for _ in range(100):
+        _ += 100
         print(_, 'iteration')
         wing = Wing(airfoil)
         for i in range(n - 2):
             print(i, end='\r')
-            pi[i], ind = uct(wing, (n - i) * 10, pro, val, x, sess)
+            pi[i], ind = uct(wing, (n - i) * 5, pro, val, x, sess)
             air_input[i] = wing.airfoil
             val_i[i, ind] = 1
             wing.draw(index_point(ind, n))
@@ -72,9 +73,9 @@ if __name__ == '__main__':
         plt.close()
         print('save wing shape')
 
-        for i in range(1000):
+        for i in range(100):
             train_, loss_value = sess.run((train, loss), {x: air_input, z: D, pi_true: pi, x_index: val_i})
-            if i % 100 == 0:
+            if i % 10 == 0:
                 print(i, loss_value)
 
         save_path = saver.save(sess, '/home/xie/tf_model/x')

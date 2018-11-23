@@ -1,6 +1,20 @@
 from model_v2 import *
 from input_data import *
 
+def inputs_data(airfoil):
+    n = airfoil.shape[0]
+
+    c_n2 = n * (n - 1) // 2
+    air_input = np.zeros([n - 2, n, n])
+    point_true = np.zeros([n - 2, c_n2])
+    for i in range(n - 2):
+        air_input[i, :, :i + 1] = airfoil[:, :i + 1]
+        point_true[i, point_index(airfoil[:, i + 1].reshape(-1), n)] = 1
+
+    air_input[:, 5, 10] = 1
+
+    return air_input, point_true
+
 num = 11
 airfoil = naca0012(num)
 air_input, point_true = inputs_data(airfoil)

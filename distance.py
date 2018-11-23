@@ -1,6 +1,5 @@
 import os
-import numpy as np
-from scipy import interpolate
+from blockMeshDict_v2 import *
 
 
 def target_pressure_fn():
@@ -46,4 +45,6 @@ def distance(fn):
 
 
 if __name__ == '__main__':
+    wing_array = naca0012(points(61))
+    wing_points = write_dict(wing_array)
     print(distance(target_pressure_fn()))

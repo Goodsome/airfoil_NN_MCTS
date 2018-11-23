@@ -1,5 +1,6 @@
-from mcts_v2 import point_index
 import numpy as np
+import pdb
+from scipy import interpolate
 
 ERROR = 0.00001
 
@@ -28,46 +29,45 @@ air1 = np.array([[0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., ],
                  [0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., ], ]).reshape(11, 11)
 
 
-def inputs_data(airfoil):
-    n = airfoil.shape[0]
+def points(n):
+    tmp = np.loadtxt('dian0.csv', dtype=np.str, delimiter=',')
+    coordinate = tmp[1:, [5, 6, 7]].astype(np.float)
+    x_z = coordinate[coordinate[:, 1] == 0][:, [0, 2]]
+    z_neg = x_z[x_z[:, 1] <= 0.0001]
+    z_neg = z_neg[np.argsort(z_neg[:, 0])]
 
-    c_n2 = n * (n - 1) // 2
-    air_input = np.zeros([n - 2, n, n])
-    point_true = np.zeros([n - 2, c_n2])
-    for i in range(n - 2):
-        air_input[i, :, :i + 1] = airfoil[:, :i + 1]
-        point_true[i, point_index(airfoil[:, i + 1].reshape(-1), n)] = 1
+    f_n = interpolate.interp1d(z_neg[:, 0], z_neg[:, 1], kind='cubic')
 
-    air_input[:, 5, 10] = 1
+    x_n = np.linspace(0, 1, n)
 
-    return air_input, point_true
+    z_n = f_n(x_n)
+
+    result = np.concatenate((x_n, x_n[1:-1], z_n, -z_n[1:-1])).reshape(2, -1).T
+    return result
 
 
-def naca0012(n=101, points=None):
-    if points is None:
+def naca0012(p=None, train=False, n=101):
+    if p is None:
         x = np.linspace(0, 1, n)
         z = 0.1
-        points = np.zeros([(n - 1) * 2, 2])
-        points[:n, 0] = x[::-1]
-        points[n:, 0] = x[1:-1]
-        points[1:n - 1, 1] = -z
-        points[n:, 1] = z
+        p = np.zeros([(n - 1) * 2, 2])
+        p[:n, 0] = x[::-1]
+        p[n:, 0] = x[1:-1]
+        p[1:n - 1, 1] = -z
+        p[n:, 1] = z
 
-    points[:, 1] /= 0.12
-    points *= n - 1
-    points[:, 1] += (n - 1) // 2
-    points += ERROR
+    else:
+        n = p.shape[0] // 2 + 1
+
+    p[:, 1] /= (np.max(p[:, 1]) / 0.5)
+    if train:
+        p[:, 1] /= 1.2
+    p *= n - 1
+    p = np.rint(p).astype(np.int)
+    p[:, 1] += (n - 1) // 2
 
     air = np.zeros([n, n])
-    for i in points:
-        air[i.astype(np.int)[1], i.astype(np.int)[0]] = 1
+    for i in p:
+        air[i[1], i[0]] = 1
     return air
 
-
-if __name__ == '__main__':
-    airfoil_shape = naca0012()
-
-    np.set_printoptions(threshold=np.nan)
-    x_input, y_true = inputs_data(airfoil_shape)
-    print(x_input[4])
-    print(np.argwhere(y_true == 1))

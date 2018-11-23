@@ -2,4 +2,6 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
 
-s = np.array([1, 2, 3, 4, 5, 6]).
+for i in range(10):
+    i += 10
+    print(i)
