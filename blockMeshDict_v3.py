@@ -4,10 +4,12 @@ from input_data import *
 def cal_vertices(p):
     """二维数组转化为坐标点"""
     n = p.shape[0]
-    x = np.argwhere(p[::-1].T == 1).astype(np.float)
-    x[:, 1] -= x[0, 1]
+    x = np.argwhere(p != 0)
+    y = (p[tuple(x.T)] - p[tuple(x[0])]) / 5
+    x = x.astype(np.float)
+    x[:, 1] += y - x[0, 1]
     x /= n - 1
-    x[:, 1] *= 0.12
+    x[:, 1] *= (0.1 / 0.5)
     return x
 
 
@@ -127,7 +129,6 @@ def write_dict(a):
 
     if a.shape[1] != 2:
         a = cal_vertices(a)
-
 
     v = array_sort(a, power=1)
     wing_shape = v.copy()

@@ -1,7 +1,21 @@
-import matplotlib as mpl
-import matplotlib.pyplot as plt
-import numpy as np
+import sys
+import multiprocessing
 
-for i in range(10):
-    i += 10
-    print(i)
+def hello(taskq, resultq):
+    import tensorflow as tf
+    config = tf,ConfigProto()
+    config.gpu_options.allow_growth=True
+    sess = tf.Session(config=config)
+    while True:
+        name = taskq.get()
+        res  = sess.run(tf.constant('hello ' + name))
+        resultq.put(res)
+
+
+if __name__ == '__main__':
+    taskq = multiprocessing.Queue()
+    resultq = multiprocessing.Queue()
+    p = multiprocessing.Process(target=hello, args=(taskq, resultq))
+    p.start()
+
+

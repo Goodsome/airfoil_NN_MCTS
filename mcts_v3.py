@@ -59,7 +59,8 @@ class Node:
         self.children_number += self.new_children
 
     def select_child(self):
-        return sorted(self.children, key=lambda c: c.P / (1 + c.visit) + c.Q)[-1]
+        return sorted(self.children,
+                      key=lambda c: c.Q + c.P * np.sqrt(2 * np.log(self.visit)) / (1 + c.visit))[-1]
 
     def update(self):
         self.visit += 1
@@ -69,7 +70,7 @@ class Node:
             self.parent.children_number += self.new_children
 
 
-def uct(root_wing, iteration, pred, v, x, se):
+def uct(root_wing, iteration, pred, v, x, se, t):
     root_node = Node()
 
     for i in range(iteration):
@@ -90,9 +91,11 @@ def uct(root_wing, iteration, pred, v, x, se):
             node = node.parent
 
     pi = np.array(list(map(lambda c: c.visit, root_node.children)))
+    pi = np.power(pi, 1 / t)
     pi = pi / np.sum(pi)
     return pi, np.argmax(pi)
 
 
 if __name__ == '__main__':
     airf = naca0012(points(21))
+    print(airf)

@@ -18,16 +18,20 @@ def target_pressure_fn():
 def distance(fn):
 
     os.system('./wing_openFoam/Allclean')
-    blockMesh = os.system('blockMesh -case "wing_openFoam" > blockMesh.log')
-    if blockMesh != 0:
+    block_mesh = os.system('blockMesh -case "wing_openFoam" > log/blockMesh.log')
+    if block_mesh != 0:
         dis = 0
         return dis
     print('blockMesh done!')
-    rhoSimpleFoam = os.system('rhoSimpleFoam -case "wing_openFoam" > rhoSimple.log')
-    if rhoSimpleFoam != 0:
+    os.system('decomposePar -case "wing_openFoam" > log/decomposePar.log')
+    print('decomposePar!')
+    rho_simple_foam = os.system('mpirun -np 4 rhoSimpleFoam -parallel -case "wing_openFoam" > log/rhoSimple.log')
+    if rho_simple_foam != 0:
         dis = 0
         return dis
     print('rhoSimpleFoam down')
+    os.system('reconstructPar -case "wing_openFoam" > log/reconstructPar.log')
+    print('reconstructPar!')
     os.system('paraFoam -touch -case "wing_openFoam"')
     os.system('mv wing_openFoam/wing_openFoam.OpenFOAM wing_openFoam/wing_openFoam.foam')
     os.system('pvpython wing_openFoam/sci.py')

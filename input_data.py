@@ -46,8 +46,9 @@ def points(n):
     return result
 
 
-def naca0012(p=None, train=False, n=101):
+def naca0012(p=None, train=False):
     if p is None:
+        n = 21
         x = np.linspace(0, 1, n)
         z = 0.1
         p = np.zeros([(n - 1) * 2, 2])
@@ -59,7 +60,7 @@ def naca0012(p=None, train=False, n=101):
     else:
         n = p.shape[0] // 2 + 1
 
-    p[:, 1] /= (np.max(p[:, 1]) / 0.5)
+    p[:, 1] /= (0.1 / 0.5)
     if train:
         p[:, 1] /= 1.2
     p *= n - 1
@@ -68,6 +69,6 @@ def naca0012(p=None, train=False, n=101):
 
     air = np.zeros([n, n])
     for i in p:
-        air[i[1], i[0]] = 1
+        air[tuple(i)] = 1
     return air
 
