@@ -1,1 +1,1 @@
-Design airfoil by nerual network and Monte Carlo Tree Search
+Design airfoil by deep learning and reinforcement learning
